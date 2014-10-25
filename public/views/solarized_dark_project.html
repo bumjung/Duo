@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/normalize.css">
+<script type="text/javascript" src="/bower_components/jquery/dist/jquery.js"></script>
+<script type="text/javascript" src="/bower_components/q/q.js"></script>
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+<script charset="utf-8" src="framework/editor/src-min-noconflict/ace.js" type="text/javascript"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+
+	$(document).ready(function(){
+
+		var socket = io.connect();
+	    var contentView = ace.edit("content");
+
+	    contentView.setTheme("ace/theme/solarized_dark");
+	    contentView.getSession().setMode("ace/mode/text");
+    	contentView.setValue("",1);
+    	contentView.gotoLine(1);
+
+		socket.on('render', function(data){
+			console.log(data.html);
+			$('ul#foldertree').append(data.html);
+		});
+		socket.on('content', function(data){
+			console.log("ace/mode/"+data.type);
+	    	contentView.getSession().setMode("ace/mode/"+data.type);
+			Q(contentView.setValue(data.content,1)).then(function(){contentView.gotoLine(1)});
+		});
+		/*socket.on('author-position', function(data){
+			$('#'+data.id).append(data.html);
+		})*/
+
+		$('ul#foldertree').on('click', 'li.file', function(){
+			$("#foldertree li.file > i.fa.fa-square").remove();
+			$('.file-title').text($(this).text());
+			$('.file-title').addClass('fa fa-file-code-o');
+			console.log($(this).attr('id'));
+			socket.emit('file', $(this).attr('id'));
+		});
+
+		$('ul#foldertree').on('click', 'li.folder', function(){
+			console.log($(this).text());
+			$(this).next().toggle();
+			$(this).toggleClass('fa fa-folder-open');
+			$(this).toggleClass('fa fa-folder');
+		});
+
+		contentView.on('change', function(data){
+			console.log('SOMETHING CHANGED');
+			console.log(data);
+			selectionRange = contentView.getSelectionRange();
+			startLine=selectionRange.start.row+1;
+
+			console.log(startLine);
+		});
+
+		contentView.onCursorChange(function(){
+			console.log('SOMETHING CHANGED');
+			selectionRange = contentView.getSelectionRange();
+			startLine=selectionRange.start.row+1;
+
+			console.log(startLine);
+		});
+	});
+	</script>
+	<style>
+		html{ height:100%; }
+		body{ height:100%; margin:0; padding:0; background-color:#fcfff5; }
+		ul{
+			padding-left:10px;
+			display:block;
+		}
+		.header{
+			position:relative;
+			z-index:3;
+			color:#fff;
+			padding:6px 30px;
+			margin:0 auto;
+			display:block;
+			height:7%;
+			width:100%;
+			background-color:#193441;
+			border-bottom: 5px solid #193441;
+		}
+		.header a,.header .btn-default{
+			color:#fff;
+			cursor:pointer;
+			text-decoration: none;
+		}
+		.header a:hover{
+			color: rgba(130, 130, 130, 0.9);
+		}
+		.header .btn-default:hover, .btn-default:focus, .btn-default:active, .btn-default.active, .open>.dropdown-toggle.btn-default{
+			color: rgba(130, 130, 130, 0.9);
+		}
+		#foldertree li{
+			display:block!important;
+			padding:5px;
+			-webkit-touch-callout: none;
+		    -webkit-user-select: none;
+		    -khtml-user-select: none;
+		    -moz-user-select: none;
+		    -ms-user-select: none;
+		    user-select: none;
+		    cursor:pointer;
+		}
+		#foldertree li:hover{
+			color:#fcfff5;
+		}
+		#foldertree div.child-container{
+		    border-left:1px solid rgba(130, 130, 130, .3);
+		}
+		#foldertree li:before{
+			margin-right:10px;
+		}
+		div.content-container{
+			padding:0px 50px 50px 50px;
+			display:block;
+			width:100%;
+			height:93%;
+		}
+		div.folder-container{
+			background-color:#193441;/*#1D1F21;*/
+			width:25%;
+			height:100%;
+			position:relative;
+			display:inline-block;
+			float:left;
+			padding:15px;
+			border-bottom:15px solid #1D1F21;
+			border: 3px solid #d1dbbd;
+			border-right:0;
+			overflow-y:scroll;
+
+		}
+		ul#foldertree {
+			position:relative;
+			width:100%;
+			color:#91aa9d;
+			margin:0;
+			padding:0;
+
+		}
+		ul.folder {
+			padding: 0;
+	    	list-style-type: none;
+		}
+		div#html{
+			border:2px solid #17181A;
+			width:75%;
+			position:relative;
+			display:inline-block;
+			margin:0;
+			padding: 0;
+			height:100%;
+			float:right;
+			background-color:#1D1F21;
+			border: 3px solid #d1dbbd;
+		}
+		pre#content{
+			height:100%;
+			border-radius:0;
+			margin:0;
+			border:1px solid #1d1f21;
+			position:relative;
+			width:100%;		}
+		#html, #wrapper, #dashboard { 
+		    margin: 0;
+		    position: absolute;
+		    top: 0;
+		    bottom: 0;
+		    left: 0;
+		    right: 0;
+		}
+		.author-position{
+			position:relative;
+			float:right;
+			color:#336ca6;
+		}
+		.file-title{
+			display:inline-block;
+			font-size:20px;
+			width:75%;
+			position:relative;
+			top:5px; 
+		}
+		.file-title:before{
+			margin-right:10px;
+		}
+		.project-title-container{
+			width:25%;
+			display:inline-block;
+		}
+		.project-title{
+			position:relative;
+			top:5px;
+			font-size:16px; 
+			font-weight:bold;
+		}
+		.file-title-container{
+			display:inline-block;
+			width:75%;
+		}
+		.save-button{
+			float:right;
+			margin:0;
+			padding:3px 10px;
+		}
+	</style>
+</head>
+
+<body>
+
+<div class="container-fluid header">
+	<a style="float-left; font-size:23px;">DUO</a>
+	<div style="float:right">
+		<div class="btn-group">
+			<button type="button" style="background-color: inherit; border:0;" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+		    	Paul Kim <span class="caret"></span>
+		 	 </button>
+	     	 <!--<a id="profile" style="font-size:15px;position:relative;top:5px;">Paul Kim <span class="caret"></span></a>-->
+	      	<ul class="dropdown-menu" role="menu" style="min-width:130px; right:0; left:auto; top:130%;">
+	        	<li><a href="#">My Projects</a></li>
+	        	<li class="divider"></li>
+	        	<li><a href="#">Logout</a></li>
+	     	 </ul>
+	    </div>
+		<!--<a style="display:inline-block; font-size:15px;position:relative;top:2px;">Log out</a>-->
+	</div>
+</div>
+<div class="content-container">
+	<div style="margin:10px;display:block; position:relative;">
+		<div class="project-title-container"><span class="project-title">PROJECT ALPHA</span></div><!--
+		--><div class="file-title-container">
+				<span class="file-title"></span>
+				<button type="button" class="save-button btn btn-success" style="background-color:#3e606f"><i class="fa fa-floppy-o"></i>&nbsp;&nbsp;Save File</button>
+			</div>
+	</div>
+	<div class="folder-container">
+		<ul id="foldertree"></ul>
+	</div><!--
+ --><div id="html">
+		<pre id="content"></pre>
+	</div>
+</div>
+</body>
+</html>

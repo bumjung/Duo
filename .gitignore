@@ -1,0 +1,8 @@
+/data
+/bower_components
+*/bower_components
+/node_modules
+oauth.js
+.DS_Store
+*/libs
+*/framework

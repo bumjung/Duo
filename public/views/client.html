@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="/css/main.css" rel="stylesheet">
+<script type="text/javascript" src="/bower_components/jquery/dist/jquery.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	var socket = io.connect();
+	socket.on('render', function(data){
+		console.log(data.render);
+		$('ul#foldertree').append(data.render);
+	});
+
+	$('ul#foldertree').on('click', 'li.file', function(){
+		console.log($(this).attr('id'));
+		socket.emit('file', $(this).attr('id'));
+	});
+
+	$('ul#foldertree').on('click', 'li.folder-name', function(){
+		console.log($(this).text());
+		$(this).next().toggle();
+	});
+
+	socket.on('content', function(data){
+		$('pre#content').text(data.content);
+	});
+});
+</script>
+
+
+</head>
+
+<body>
+<ul id="foldertree">
+</ul>
+<pre id="content"></pre>
+</body>
+</html>
