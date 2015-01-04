@@ -12,4 +12,4 @@ Realtime pair-coding application
 
 ##### Prototype Example:
 
-![](https://raw.githubusercontent.com/bumjung/Duo/master/public/images/prototype_example.png)
+![](https://raw.githubusercontent.com/bumjung/Duo/master/public/images/protoype_example.png)
